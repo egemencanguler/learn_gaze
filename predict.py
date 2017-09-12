@@ -7,12 +7,13 @@ from sklearn import linear_model
 def get_files(dir):
     from os import listdir
     from os.path import isfile, join
-    return [f for f in listdir(dir) if isfile(join(dir, f))]
+    return [f for f in listdir(dir) if isfile(join(dir, f)) and not f.startswith(".")]
 
-files = get_files("results")
+result_path = "test/"
+files = get_files(result_path)
 for f in files:
     print("file",f)
-    path = "results/" + f
+    path = result_path + f
     data = GazeData(path)
 
     features = np.array(data.cal_features)

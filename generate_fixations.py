@@ -18,7 +18,7 @@ class GenerationData:
 
 
 def put_gaze(img, x, y):
-    radius = 0
+    radius = 3
     for xi in range(x - radius, x + radius + 1):
         for yi in range(y - radius, y + radius + 1):
             dis = ( (xi - x) ** 2 + (yi - y) ** 2 ) ** 0.5
@@ -26,8 +26,11 @@ def put_gaze(img, x, y):
                 img.putpixel((xi, yi), (256, 256, 256))
 
 
-def generate_img(img_path, img_width, img_height, normalized_gaze_data):
-    img = Image.new("RGB", (int(img_width), int(img_height)))
+def generate_img(img_path, img_width, img_height, normalized_gaze_data,img_no = None):
+    if img_no is None:
+        img = Image.new("RGB", (int(img_width), int(img_height)))
+    else:
+        img = Image.open("./imgs/img" + str(img_no) + ".jpg")
 
     for d in normalized_gaze_data:
         if d[0] > 0 and d[1] > 0:
@@ -51,7 +54,8 @@ def web_gaze(file_name, output_dir):
 
         gd = GenerationData(path, rec["imageSize"][0], rec["imageSize"][1], rec["gazeData"])
         generation_data.append(gd)
-        # generate_img(path, rec["imageSize"][0], rec["imageSize"][1], rec["gazeData"])
+        tp = output_dir + "_" + img_name  + ".png"
+        generate_img(tp, rec["imageSize"][0], rec["imageSize"][1], rec["gazeData"], rec["imageNumber"])
     return generation_data
 
 
@@ -61,12 +65,10 @@ def get_files(dir):
     return [f for f in listdir(dir) if isfile(join(dir, f))]
 
 
-
-
 # Image name - gaze points dic
 image_data_pairs = {}
-results_dir = "./modified_results/"
-output_dir = "./fixations2/"
+results_dir = "./modified_test/"
+output_dir = "./modified_test/"
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
@@ -88,6 +90,7 @@ for fn in fnames:
         # generate_img(gd.path + str(counter) + ".png", gd.image_size[0], gd.image_size[1], gd.gaze_data)
         counter += 1
 
+# Generate images from combined fixations
 for item in image_data_pairs.items():
     combined = item[1]
     generate_img(combined.path, combined.image_size[0], combined.image_size[1], combined.gaze_data)

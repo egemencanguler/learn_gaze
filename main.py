@@ -1,21 +1,37 @@
 import tensorflow as tf
-import json
+import numpy as np
+from gaze_data import GazeData
+
+# Prepare the data
+test_file = "results/bahadır.json"
+gaze_data = GazeData(test_file)
+
+features = np.array(gaze_data.cal_features)
+pointsX = np.array([x[0] for x in gaze_data.cal_points])
+pointsY = np.array([x[1] for x in gaze_data.cal_points])
 
 
-with open('results.json') as json_file:
-    data = json.load(json_file)
+n_test = int(len(features) / 4)
+n_train = len(features) - n_test
 
-features = data["features"]
-points = data["labels"]
+idx = np.array(list(range(len(features))))
+np.random.shuffle(idx)
+train_features = features[idx[:n_train]]
+train_x = pointsX[idx[:n_train]].reshape((n_train,1))
+train_y = pointsY[idx[:n_train]]
 
 
-features = [[x] for x in range(100)]
-points = [[x**2,x*2] for x in range(100)]
+test_features = features[idx[n_train:]]
+test_x = pointsX[idx[n_train:]].reshape((n_test,1))
+test_y = pointsY[idx[n_train:]]
 
-n_samples = len(features)
-n_input = 1
-n_out = 2
-n_hidden_layer = 1
+# Train Model
+
+
+n_samples = len(train_features)
+n_input = 120
+n_out = 1
+n_hidden_layer = 5
 
 X = tf.placeholder(tf.float32, [None, n_input])
 Y = tf.placeholder(tf.float32, [None, n_out])
@@ -30,13 +46,13 @@ hidden_layer = tf.matmul(X,W1) + b1
 pred = tf.matmul(tf.nn.relu(hidden_layer),W2) + b2
 
 # Loss function using L2 Regularization
-beta = 0.1
+beta = 0.05
 regularizer = tf.nn.l2_loss(W1) + tf.nn.l2_loss(W2)
 # Mean squared error
 cost = tf.reduce_sum(tf.pow(pred-Y, 2))/(2*n_samples)
-loss = tf.reduce_mean(cost)
+loss = tf.reduce_mean(cost + beta * regularizer)
 
-optimizer = tf.train.AdadeltaOptimizer()
+optimizer = tf.train.GradientDescentOptimizer(0.0001)
 train_op = optimizer.minimize(loss)
 
 
@@ -45,9 +61,9 @@ init = tf.global_variables_initializer()
 with tf.Session() as sess:
     sess.run(init)
 
-    for step in range(10000):
-        sess.run(train_op, feed_dict={X:features,Y:points})
-        c = sess.run(loss, feed_dict={X:features,Y:points})
+    for step in range(1110000):
+        sess.run(train_op, feed_dict={X:train_features,Y:train_x})
+        c = sess.run(loss, feed_dict={X:train_features,Y:train_x})
         print("Cost",c/n_samples)
 
 

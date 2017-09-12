@@ -21,14 +21,22 @@ class GazeData:
 
     def get_eyes_features(self,eyes):
         try:
-            left_eye = self.eye_to_img(eyes["left"]).resize((RESIZE_WIDTH, RESIZE_HEIGHT)).convert("L")
-            right_eye = self.eye_to_img(eyes["right"]).resize((RESIZE_WIDTH, RESIZE_HEIGHT)).convert("L")
+            left_eye = self.eye_to_img(eyes["left"])
+            right_eye = self.eye_to_img(eyes["right"])
         except:
-            left_eye = self.eye_to_img2(eyes["left"]).resize((RESIZE_WIDTH, RESIZE_HEIGHT)).convert("L")
-            right_eye = self.eye_to_img2(eyes["right"]).resize((RESIZE_WIDTH, RESIZE_HEIGHT)).convert("L")
+            try:
+                left_eye = self.eye_to_img2(eyes["left"])
+                right_eye = self.eye_to_img2(eyes["right"])
+            except:
+                # print("Non valid eyes:",eyes)
+                return None
+
+        left_eye = left_eye.resize((RESIZE_WIDTH, RESIZE_HEIGHT), resample=Image.BILINEAR).convert("L")
+        right_eye = right_eye.resize((RESIZE_WIDTH, RESIZE_HEIGHT), resample=Image.BILINEAR).convert("L")
 
         left_eye = ImageOps.equalize(left_eye)
         right_eye = ImageOps.equalize(right_eye)
+
         combined = Image.new("L", (RESIZE_WIDTH * 2, RESIZE_HEIGHT))
         combined.paste(left_eye)
         combined.paste(right_eye, (RESIZE_WIDTH, 0))
@@ -50,10 +58,11 @@ class GazeData:
         self.cal_eyes = []
         for i in range(len(calibration)):
             eyes = calibration[i][0]
-            point = calibration[i][1]
-            self.cal_features.append(self.get_eyes_features(eyes))
-            self.cal_points.append(point)
-            self.cal_eyes.append(eyes)
+            if not (eyes["left"]["blink"] or eyes["right"]["blink"]):
+                point = calibration[i][1]
+                self.cal_features.append(self.get_eyes_features(eyes))
+                self.cal_points.append(point)
+                self.cal_eyes.append(eyes)
 
         self.pred_features = []
         self.pred_points = []
@@ -61,9 +70,11 @@ class GazeData:
         for rec in self.data["experiment"]["recordings"]:
             for g in rec["gazeData"]:
                 eyes = g[5]
-                self.pred_features.append(self.get_eyes_features(eyes))
-                self.pred_points.append([g[2], g[3]])
-                self.pred_eyes.append(eyes)
+                ef = self.get_eyes_features(eyes)
+                if ef is not None:
+                    self.pred_features.append(ef)
+                    self.pred_points.append([g[2], g[3]])
+                    self.pred_eyes.append(eyes)
 
 
     def normalize(self,point,imageScaledSize):
