@@ -27,7 +27,6 @@ test_y = pointsY[idx[n_train:]]
 
 # Train Model
 
-
 n_samples = len(train_features)
 n_input = 120
 n_out = 1
@@ -49,7 +48,7 @@ pred = tf.matmul(tf.nn.relu(hidden_layer),W2) + b2
 beta = 0.05
 regularizer = tf.nn.l2_loss(W1) + tf.nn.l2_loss(W2)
 # Mean squared error
-cost = tf.reduce_sum(tf.pow(pred-Y, 2))/(2*n_samples)
+cost = tf.reduce_sum(tf.pow(pred-Y, 2)) / (2*n_samples)
 loss = tf.reduce_mean(cost + beta * regularizer)
 
 optimizer = tf.train.GradientDescentOptimizer(0.0001)
