@@ -1,5 +1,6 @@
 from PIL import Image
 import os
+from utils import get_files
 
 image_mappings = {
             0:"i05june05_static_street_boston_p1010764",
@@ -59,39 +60,31 @@ def web_gaze(file_name, output_dir):
     return generation_data
 
 
-def get_files(dir):
-    from os import listdir
-    from os.path import isfile, join
-    return [f for f in listdir(dir) if isfile(join(dir, f))]
+def generate_fixation_maps(results_dir, output_dir):
+    # Image name - gaze points pairs
+    image_data_pairs = {}
 
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-# Image name - gaze points dic
-image_data_pairs = {}
-results_dir = "./test/"
-output_dir = "./fixations2/"
+    fnames = get_files(results_dir)
+    counter = 0
 
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
+    for fn in fnames:
+        path = results_dir + fn
+        for gd in web_gaze(path,output_dir):
+            # Use partial data
+            # gd.gaze_data = gd.gaze_data[:10]
+            if gd.path not in image_data_pairs:
+                image_data_pairs[gd.path] = gd
+            else:
+                image_data_pairs[gd.path].gaze_data += gd.gaze_data
+            # Output individual fixation maps for each subject
+            # generate_img(gd.path + str(counter) + ".png", gd.image_size[0], gd.image_size[1], gd.gaze_data)
+            counter += 1
 
-
-fnames = get_files(results_dir)
-counter = 0
-
-for fn in fnames:
-    path = results_dir + fn
-    for gd in web_gaze(path,output_dir):
-        # Use partial data
-        # gd.gaze_data = gd.gaze_data[:10]
-        if gd.path not in image_data_pairs:
-            image_data_pairs[gd.path] = gd
-        else:
-            image_data_pairs[gd.path].gaze_data += gd.gaze_data
-        # Output individual fixation maps for each subject
-        # generate_img(gd.path + str(counter) + ".png", gd.image_size[0], gd.image_size[1], gd.gaze_data)
-        counter += 1
-
-# Generate images from combined fixations
-for item in image_data_pairs.items():
-    combined = item[1]
-    generate_img(combined.path, combined.image_size[0], combined.image_size[1], combined.gaze_data)
+    # Generate images from combined webgaze_fixations
+    for item in image_data_pairs.items():
+        combined = item[1]
+        generate_img(combined.path, combined.image_size[0], combined.image_size[1], combined.gaze_data)
 

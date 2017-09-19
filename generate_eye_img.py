@@ -13,17 +13,16 @@ def eye_to_img(eye):
     return eye_img
 
 
-test_file = "results/bahadır.json"
-result_dir = "eyes/"
-gaze_data = GazeData(test_file)
+def generate_eye_imgs(test_file,result_dir,number_of_eyes):
+    gaze_data = GazeData(test_file)
 
-for i in range(1):
-    eyes = gaze_data.cal_eyes[i]
-    print(eyes)
-    left_eye = eye_to_img(eyes["left"])
-    right_eye = eye_to_img(eyes["right"])
-    left_eye.save(result_dir + "left_" + str(i) + ".png")
-    left_eye.save(result_dir + "right_" + str(i) + ".png")
+    for i in range(number_of_eyes):
+        eyes = gaze_data.cal_eyes[i]
+        print(eyes)
+        left_eye = eye_to_img(eyes["left"])
+        right_eye = eye_to_img(eyes["right"])
+        left_eye.save(result_dir + "left_" + str(i) + ".png")
+        right_eye.save(result_dir + "right_" + str(i) + ".png")
 
 
 
