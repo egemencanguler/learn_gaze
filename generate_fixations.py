@@ -18,7 +18,7 @@ class GenerationData:
 
 
 def put_gaze(img, x, y):
-    radius = 3
+    radius = 0
     for xi in range(x - radius, x + radius + 1):
         for yi in range(y - radius, y + radius + 1):
             dis = ( (xi - x) ** 2 + (yi - y) ** 2 ) ** 0.5
@@ -67,8 +67,8 @@ def get_files(dir):
 
 # Image name - gaze points dic
 image_data_pairs = {}
-results_dir = "./modified_test/"
-output_dir = "./modified_test/"
+results_dir = "./test/"
+output_dir = "./fixations2/"
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
