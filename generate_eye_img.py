@@ -1,15 +1,16 @@
-import json
-from  PIL import Image,ImageOps
+from  PIL import Image
 from gaze_data import GazeData
 
+
 def eye_to_img(eye):
-    try:
-        eye_patch = eye["patch"]
-    except:
+    if "data" in eye["patch"]:
         data = eye["patch"]["data"]
         eye_patch = []
-        for i in range(int(max(data.keys())) + 1):
+        n = max( [int(x) for x in data.keys()] ) + 1
+        for i in range(n):
             eye_patch.append(int(data[str(i)]))
+    else:
+        eye_patch = eye["patch"]
     img_data = [x for x in zip(eye_patch[0::4], eye_patch[1::4], eye_patch[2::4], eye_patch[3::4])]
     eye_img = Image.new("RGBA", (eye["width"], eye["height"]))
     eye_img.putdata(img_data)

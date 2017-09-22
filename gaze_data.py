@@ -2,40 +2,21 @@ import json
 from PIL import Image, ImageOps
 RESIZE_WIDTH = 10
 RESIZE_HEIGHT = 6
-
+counter = 0
 class GazeData:
 
-    def eye_to_img(self,eye):
-        eye_patch = eye["patch"]
-        img_data = [x for x in zip(eye_patch[0::4], eye_patch[1::4], eye_patch[2::4], eye_patch[3::4])]
-        eye_img = Image.new("RGBA", (eye["width"], eye["height"]))
-        eye_img.putdata(img_data)
-        return eye_img
-
-    def eye_to_img2(self,eye):
-        data = eye["patch"]["data"]
-        eye_patch = []
-        for i in range(int(max(data.keys())) + 1):
-            eye_patch.append(int(data[str(i)]))
-        img_data = [x for x in zip(eye_patch[0::4], eye_patch[1::4], eye_patch[2::4], eye_patch[3::4])]
-        eye_img = Image.new("RGBA", (eye["width"], eye["height"]))
-        eye_img.putdata(img_data)
-        return eye_img
-
     def get_eyes_features(self,eyes):
-        try:
-            left_eye = self.eye_to_img(eyes["left"])
-            right_eye = self.eye_to_img(eyes["right"])
-        except:
-            try:
-                left_eye = self.eye_to_img2(eyes["left"])
-                right_eye = self.eye_to_img2(eyes["right"])
-            except:
-                # print("Non valid eyes:",eyes)
-                return None
+        from generate_eye_img import eye_to_img
+        left_eye = eye_to_img(eyes["left"])
+        right_eye = eye_to_img(eyes["right"])
+        # left_eye.save("eyes/" + str(self.counter) + "r_left.png")
+        # right_eye.save("eyes/" + str(self.counter) + "r_right.png")
 
         left_eye = left_eye.resize((RESIZE_WIDTH, RESIZE_HEIGHT), resample=Image.BILINEAR).convert("L")
         right_eye = right_eye.resize((RESIZE_WIDTH, RESIZE_HEIGHT), resample=Image.BILINEAR).convert("L")
+
+        # left_eye.save("eyes/" + str(self.counter) + "left.png")
+        # right_eye.save("eyes/" + str(self.counter) + "right.png")
 
         left_eye = ImageOps.equalize(left_eye)
         right_eye = ImageOps.equalize(right_eye)
@@ -43,11 +24,13 @@ class GazeData:
         combined = Image.new("L", (RESIZE_WIDTH * 2, RESIZE_HEIGHT))
         combined.paste(left_eye)
         combined.paste(right_eye, (RESIZE_WIDTH, 0))
-
+        # combined.save("eyes/" + str(self.counter) + "combined.png")
+        self.counter += 1
         return list(combined.getdata())
         pass
 
     def __init__(self,file_path):
+        self.counter = 0
         self.file_path = file_path
         with open(file_path) as json_file:
             data = json.load(json_file)
@@ -78,7 +61,6 @@ class GazeData:
                     self.pred_features.append(ef)
                     self.pred_points.append([g[2], g[3]])
                     self.pred_eyes.append(eyes)
-
 
     def normalize(self,point,imageScaledSize):
         windowWidth = self.windowSize["x"]

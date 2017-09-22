@@ -1,7 +1,6 @@
 import json
 from gaze_data import GazeData
 import numpy as np
-from sklearn import linear_model
 from utils import get_files
 
 
