@@ -6,7 +6,10 @@ def eye_to_img(eye):
     try:
         eye_patch = eye["patch"]
     except:
-        eye_patch = list(eye["patch"]["data"].values())
+        data = eye["patch"]["data"]
+        eye_patch = []
+        for i in range(int(max(data.keys())) + 1):
+            eye_patch.append(int(data[str(i)]))
     img_data = [x for x in zip(eye_patch[0::4], eye_patch[1::4], eye_patch[2::4], eye_patch[3::4])]
     eye_img = Image.new("RGBA", (eye["width"], eye["height"]))
     eye_img.putdata(img_data)
